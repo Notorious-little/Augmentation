@@ -140,7 +140,7 @@ void slidingNormalMatrixCompute(double* elements, const int MatrixSizeParam){
         for(int j = 0; j < n; ++j){ 			
             elements[i * n + j] = exp( -((MatrixSizeParam-i)*(MatrixSizeParam-i) + 
                                  (MatrixSizeParam-j)*(MatrixSizeParam-j))/(2*disp2) ) / (2*M_PI*disp2); 
-            div += elements[i * n + j];                         
+            div += elements[i * n + j];
         }
     }
     
@@ -179,16 +179,20 @@ cv::Mat blurByGaussMatrix(const cv::Mat input_img, const int blurpower){
 
     for (int i = blurpower; i < h - blurpower; ++i){
         for (int j = blurpower; j < w - blurpower; ++j){
-            for (int k = i - blurpower; k < i + blurpower + 1; ++k){ assert(k>=0 && k<h);
-                for (int l = j - blurpower; l < j + blurpower +1; ++l){ assert(l>=0 && l<w);
-                    bluring_img.at<cv::Vec3b>(i,j)[0] += (int)( input_img.at<cv::Vec3b>(k,l)[0] *
-                            Matrix[(k - i + blurpower) * n + (l - j + blurpower)]) % 255;
-                    bluring_img.at<cv::Vec3b>(i,j)[1] += (int)( input_img.at<cv::Vec3b>(k,l)[1] *
-                            Matrix[(k - i + blurpower) * n + (l - j + blurpower)]) % 255;
-                    bluring_img.at<cv::Vec3b>(i,j)[2] += (int)( input_img.at<cv::Vec3b>(k,l)[2] *
-                            Matrix[(k - i + blurpower) * n + (l - j + blurpower)]) % 255;
+            double R=0, G=0, B=0;
+            for (int k = i - blurpower; k < i + blurpower + 1; ++k){
+                for (int l = j - blurpower; l < j + blurpower +1; ++l){
+                    R += ( input_img.at<cv::Vec3b>(k,l)[0] *
+                            Matrix[(k - i + blurpower) * n + (l - j + blurpower)]);
+                    G += ( input_img.at<cv::Vec3b>(k,l)[1] *
+                            Matrix[(k - i + blurpower) * n + (l - j + blurpower)]);
+                    B += ( input_img.at<cv::Vec3b>(k,l)[2] *
+                            Matrix[(k - i + blurpower) * n + (l - j + blurpower)]);
                 }
             }
+        bluring_img.at<cv::Vec3b>(i,j)[0] = (int)R;
+        bluring_img.at<cv::Vec3b>(i,j)[1] = (int)G;
+        bluring_img.at<cv::Vec3b>(i,j)[2] = (int)B;
         }
     }
 
@@ -198,7 +202,7 @@ return bluring_img;
 
 
 
- 
+
 
 int main(){
     
@@ -220,19 +224,3 @@ int main(){
     
 return 0;
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
