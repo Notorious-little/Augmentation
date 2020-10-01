@@ -1,9 +1,8 @@
 #include <cassert>
 #include <iostream>
-#include <opencv2/core/core.hpp>       // Базовый набор функций cv
-#include <opencv2/core/mat.hpp>        // Попробуем добавить это чтобы подключить Mat
+#include <opencv2/core/core.hpp>
 #include "opencv2/imgproc/imgproc.hpp" 
-#include <opencv2/highgui/highgui.hpp> // Взаимодействие с графическим интерфейсом
+#include <opencv2/highgui/highgui.hpp>
 #include <cstring>
 #include <cstdio>
 #include <cmath>
@@ -100,13 +99,16 @@ cv::Mat autoContrast(const cv::Mat img, const int quantil){
     for(int i = 0; i < h; ++i){
         for (int j = 0; j < w; ++j){
             if (img_autocontr.at<cv::Vec3b>(i, j)[0] > qRmin && img_autocontr.at<cv::Vec3b>(i, j)[0] < qRmax )
-                img_autocontr.at<cv::Vec3b>(i, j)[0] = (int)( 255*(img_autocontr.at<cv::Vec3b>(i, j)[0] - qRmin)/(qRmax-qRmin) ) % 256 ;
+                img_autocontr.at<cv::Vec3b>(i, j)[0] =
+                        (int)( 255*(img_autocontr.at<cv::Vec3b>(i, j)[0] - qRmin)/(qRmax-qRmin) ) % 256 ;
 
             if (img_autocontr.at<cv::Vec3b>(i, j)[1] > qGmin && img_autocontr.at<cv::Vec3b>(i, j)[1] < qGmax )
-                img_autocontr.at<cv::Vec3b>(i, j)[1] = (int)( 255*(img_autocontr.at<cv::Vec3b>(i, j)[1] - qGmin)/(qGmax-qGmin) ) % 256 ;
+                img_autocontr.at<cv::Vec3b>(i, j)[1] =
+                        (int)( 255*(img_autocontr.at<cv::Vec3b>(i, j)[1] - qGmin)/(qGmax-qGmin) ) % 256 ;
 
             if (img_autocontr.at<cv::Vec3b>(i, j)[2] > qBmin && img_autocontr.at<cv::Vec3b>(i, j)[2] < qBmax )
-                img_autocontr.at<cv::Vec3b>(i, j)[2] = (int)( 255*(img_autocontr.at<cv::Vec3b>(i, j)[2] - qBmin)/(qBmax-qBmin) ) % 256 ;
+                img_autocontr.at<cv::Vec3b>(i, j)[2] =
+                        (int)( 255*(img_autocontr.at<cv::Vec3b>(i, j)[2] - qBmin)/(qBmax-qBmin) ) % 256 ;
         }
     }   
 
@@ -200,10 +202,6 @@ return bluring_img;
 }
 
 
-
-
-
-
 int main(){
     
     cv::Mat img = cv::imread ( "./mrb.bmp" , cv::IMREAD_COLOR) ;
@@ -217,6 +215,11 @@ int main(){
     cv::Mat blured_img = blurByGaussMatrix(img, 5);
 
     cv::imshow( "Blured", blured_img);
+
+    cv::Mat gray_img = img.clone();
+    cvtColor ( img , gray_img , cv::COLOR_BGR2GRAY ) ;;
+
+    cv::imshow("Gray", gray_img);
 
     cv::waitKey(0);
     
