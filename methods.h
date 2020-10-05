@@ -14,3 +14,7 @@ cv::Mat localContours(const cv::Mat input_img);
 void slidingNormalMatrixCompute(double* elements, const int MatrixSizeParam);
 
 cv::Mat blurByGaussMatrix(const cv::Mat input_img, const int blurpower);
+
+cv::Mat gaussNoize( const cv::Mat input_img, const int noize_range);
+
+double exp_rand(void);
