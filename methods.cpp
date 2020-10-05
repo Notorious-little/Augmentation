@@ -305,3 +305,56 @@ cv::Mat blurByGaussMatrix(const cv::Mat input_img, const int blurpower){
 return bluring_img;
 }
 
+
+/* #define RAND_MAX 2147483647*/
+double exp_rand(void){
+
+    double a, b;
+
+    a = (double)rand();
+    b = (double)rand();
+
+    double s = a*a + b*b;
+
+    if ( abs(s) > 1e-50 ) {
+        if ((int)a % 2 == 0){
+            return ( a * sqrt(((2) * log(s)) / s) );
+        } else {
+            return ( (-1)*a * sqrt(((2) * log(s)) / s) );
+          }
+    } else {
+        return 0;
+    }
+return 0;
+}
+
+
+cv::Mat gaussNoize( const cv::Mat input_img, const int noize_range){
+
+        cv::Mat noizing_img = input_img.clone();
+
+        int w = noizing_img.cols;
+        int h = noizing_img.rows;
+        
+        for (int i = 0; i < h; ++i){
+                for (int j = 0; j < w; ++j){
+
+                    double e = exp_rand();
+                    e /= 100;
+                    double multiplier = (double)(noize_range)/10;
+
+                    noizing_img.at<cv::Vec3b>(i,j)[0] =
+                            (int) abs(( ( ( 1 + e*multiplier ) * noizing_img.at<cv::Vec3b>(i,j)[0] ) < 255) ?
+                                ( ( 1 + e ) * noizing_img.at<cv::Vec3b>(i,j)[0] ) : 255 )  ;
+                    noizing_img.at<cv::Vec3b>(i,j)[1] =
+                            (int) abs(( ( ( 1 + e*multiplier ) * noizing_img.at<cv::Vec3b>(i,j)[1] ) < 255) ?
+                                ( ( 1 + e ) * noizing_img.at<cv::Vec3b>(i,j)[1] ) : 255 )  ;
+                    noizing_img.at<cv::Vec3b>(i,j)[2] =
+                            (int) abs(( ( ( 1 + e*multiplier ) * noizing_img.at<cv::Vec3b>(i,j)[2] ) < 255) ?
+                                ( ( 1 + e ) * noizing_img.at<cv::Vec3b>(i,j)[2] ) : 255 )  ;
+                }
+        }
+
+return noizing_img;
+}
+
