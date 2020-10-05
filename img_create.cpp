@@ -29,11 +29,13 @@ int main(){
 
     cv::imshow( "Contoured", contoured);
 
+    cv::Mat noized_image = gaussNoize( img, 15);
+
+    cv::imshow( "Noized", noized_image);
+
     cv::waitKey(0);
     
     cv::imwrite("./mrbinout.bmp", autoc);             
     
 return 0;
 }
-
-
