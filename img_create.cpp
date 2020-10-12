@@ -72,6 +72,8 @@ int main(int argc, char *argv[]){
             im_name += std::to_string(Num);
             im_name += "_";
             im_name += std::to_string(k);
+            im_name += ".bmp";
+
 
             std::string im_out_path = argv[2] + im_name;
             ++Num;
