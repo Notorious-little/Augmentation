@@ -201,6 +201,8 @@ cv::Mat blurByGaussMatrix(const cv::Mat &input_img, const int blurpower){
         }
     }
 
+    delete Matrix;
+	
 return bluring_img;
 }
 
