@@ -44,9 +44,9 @@ int main(int argc, char *argv[]){
         for(int k = 0; k < n; ++k){
 
             std::srand( (int)time(NULL) );
-            p.quantil = 2*abs( exp_rand() );
-            p.blurpower = abs( exp_rand() );
-            p.noize_range = abs( exp_rand() );
+            p.quantil = ( (int) 2*abs( exp_rand() ) ) %15;
+            p.blurpower = ( (int) abs( exp_rand() ) ) % 7;
+            p.noize_range = ( (int) abs( exp_rand() ) ) % 10;
 
             int a = std::rand();
             int b = std::rand();
