@@ -17,7 +17,7 @@
 
 int main(int argc, char *argv[]){
 
-    if(argc != 3){
+    if(argc != 4){
         std::cout << " Please enter ./executable " <<
                      "<Input folder path> <Output folder path> "
                      "<Number of Augmentations>" << std::endl;
@@ -32,55 +32,44 @@ int main(int argc, char *argv[]){
     std::string im_path;
 
     std::ifstream file;
+
     file.open(argv[1]);
+
+    cv::Mat newImage;
 
     while (std::getline(file, im_path)){
 
         cv::Mat img = cv::imread ( im_path , cv::IMREAD_COLOR) ;
 
-        for(int k = 0; k < 3; ++k){
-            cv::Mat newImage;
-            newImage = defect[ (k % 3) ]->makeImage(img, p);
-
-            std::string im_name = "Im_";
-            im_name += std::to_string(Num);
-            im_name += "_";
-            im_name += std::to_string(k);
-
-            std::string im_out_path = argv[2] + im_name;
-            ++Num;
-            cv::imwrite(im_out_path, newImage);
-        }
-
-        for(int k = 3; k < n; ++k){
-            cv::Mat newImage;
-
+        for(int k = 0; k < n; ++k){
 
             std::srand( (int)time(NULL) );
+            p.quantil = 2*abs( exp_rand() );
+            p.blurpower = abs( exp_rand() );
+            p.noize_range = abs( exp_rand() );
 
-            int i = std::rand();
-            int j = std::rand();
+            int a = std::rand();
+            int b = std::rand();
 
-            newImage = defect[ (k*i % 3) ]->makeImage(img, p);
-            newImage = defect[ (j % 3) ]->makeImage(newImage, p);
-
-            if (i % 2 == 0){
-                newImage = defect[ ((i*j) % 3) ]->makeImage(newImage, p);
-            }
+            newImage = defect[ (k % 3) ]->makeImage(img, p);
+            newImage = defect[ (b%3) ]->makeImage(newImage, p);
 
             std::string im_name = "Im_";
             im_name += std::to_string(Num);
             im_name += "_";
             im_name += std::to_string(k);
-            im_name += ".bmp";
-
 
             std::string im_out_path = argv[2] + im_name;
             ++Num;
             cv::imwrite(im_out_path, newImage);
         }
-
     }
+
+    for(int i = 1; i <= 3; ++i){
+    delete defect[i];
+    }
+
+    file.close();
 
 return 0;
 }
