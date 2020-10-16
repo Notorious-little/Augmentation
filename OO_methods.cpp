@@ -185,6 +185,8 @@ cv::Mat Blur::makeImage(const cv::Mat &input_img, Params &p){
         }
     }
 
+    delete elements;
+	
 return bluring_img;
 }
 
