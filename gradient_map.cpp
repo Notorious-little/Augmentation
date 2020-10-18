@@ -7,8 +7,8 @@
 #include <cstdio>
 #include <cmath>
 
-// Здесь составим "карту градиентов" изображения
-// Предварительно оно обработано фильтрами Blur, Autocontrast
+// Здесь составим "карту градиентов" Map[h*w] изображения
+// Предварительно оно обработано фильтрами Blur, (0-quantil linear) Autocontrast
 // Будем считать, что в точках "карты" такие обозначения :
 // 0 - градиент не прошел проверку на локальный максимум в собственной 3-окрестности
 // 1 - градиент вертикален
@@ -22,10 +22,11 @@ void localGradientMap(const cv::Mat &input_img, double* Map){
     const int w = input_img.cols;
 
     const double GK = 1.41 ;
-    const double AV = 1.1 ;
-    const double M = 0.9;
-    const double M1 = 0.9;
-    const int detnum = 2;
+    const double AV = 0.9;
+    const double G_AV = 3;
+    const double M = 1.;
+    const double M1 = 1.5;
+    const int detnum = 1;
 
     int* Rhor = new int [h*w];         int* Rvert = new int [h*w];
     int* Rmain = new int [h*w];        int* Rsub = new int [h*w];
@@ -48,23 +49,48 @@ void localGradientMap(const cv::Mat &input_img, double* Map){
         Svert[z] = 0;   Ssub[z] = 0;
     }
 
-    cv::Mat output_img( h , w , CV_8UC1 );
-
-    for (int i = 0; i < h; ++i ){
-        for (int j = 0; j < w; ++j ){
-            output_img.at<uchar>(i,j) = 0;
-        }
-    }
 
     cv::Mat b = input_img.clone();
 
 
 
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~RED~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+    long double av_diff_vert(0), av_diff_hor(0), av_diff_maindig(0), av_diff_subdig(0);
+
+    for (int i = 2; i < h-2; ++i ){
+
+    long double tmp_diff_vert(0), tmp_diff_hor(0),
+                tmp_diff_maindig(0), tmp_diff_subdig(0);
+
+        for (int j = 2; j < w-2; ++j ){
+
+                tmp_diff_vert += abs(b.at<uchar>(i-1,j) - b.at<uchar>(i+1,j));
+
+                tmp_diff_hor += abs(b.at<uchar>(i,j-1) - b.at<uchar>(i,j+1));
+
+                tmp_diff_maindig += abs(b.at<uchar>(i-1,-1) - b.at<uchar>(i+1,j+1));
+
+                tmp_diff_subdig += abs(b.at<uchar>(i-1,j+1) - b.at<uchar>(i+1,j-1));
+
+        }
+
+        av_diff_vert    += (tmp_diff_vert / w);
+        av_diff_hor     += (tmp_diff_hor / w);
+        av_diff_maindig += (tmp_diff_maindig / w);
+        av_diff_subdig  += (tmp_diff_subdig / w);
+    }
+
+    av_diff_vert    /= h;
+    av_diff_hor     /= h;
+    av_diff_maindig /= h;
+    av_diff_subdig  /= h;
+
+
     for (int i = 4; i < h-4; ++i ){
         for (int j = 4; j < w-4; ++j ){
 
-        double s = 0;
+            double s = 0;
 
             for(int k = j - 1; k <= j+1; ++k){
                 s += abs (b.at<cv::Vec3b>(i,k)[0] - b.at<cv::Vec3b>(i-2,k)[0])*GK;
@@ -116,22 +142,22 @@ void localGradientMap(const cv::Mat &input_img, double* Map){
 
             if ( M*s_vert > s_hor && M*GK*s_vert > s_maindig && M*GK*s_vert > s_subdig){
                 s_max = s_vert;
-                if (s_max > AV*s*3) {
+                if ((s_max > AV*s*3) && (s_max > G_AV * av_diff_vert)) {
                       if (GK*s_hor < s_maindig* M1 && GK*s_hor < s_subdig* M1) Rvert[i*w+j]+=1;
                 }
             } else if(M*s_hor > s_vert && M*GK*s_hor > s_maindig && M*GK*s_hor > s_subdig){
                        s_max = s_hor;
-                       if (s_max > AV*s*3) {
+                       if ((s_max > AV*s*3) && (s_max > G_AV * av_diff_hor)){
                             if (GK*s_vert < s_maindig* M1 && GK*s_vert < s_subdig* M1) Rhor[i*w+j]+=1;
                        }
             } else if( M*s_maindig > GK*s_hor && M*s_maindig > GK* s_vert && M*s_maindig > s_subdig){
                        s_max = s_maindig;
-                       if (s_max > AV*s*3) {
+                       if ((s_max > AV*s*3) && (s_max > G_AV * av_diff_maindig)) {
                                if(GK*s_vert* M1 > s_subdig && GK*s_hor* M1 > s_subdig) Rmain[i*w+j]+=1;
                            }
             } else if( M*s_subdig > GK*s_hor && M*s_subdig > GK* s_vert && M*s_subdig > s_maindig) {
                 s_max = s_subdig;
-                if (s_max > AV*s*3) {
+                if ((s_max > AV*s*3)  && (s_max > G_AV * av_diff_subdig) ) {
                         if(GK*s_vert* M1 > s_maindig && GK*s_hor* M1 > s_maindig) Rsub[i*w+j]+=1;
                 }
               }
@@ -140,6 +166,35 @@ void localGradientMap(const cv::Mat &input_img, double* Map){
 
 
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~GREEN~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    for (int i = 2; i < h-2; ++i ){
+
+    long double tmp_diff_vert(0), tmp_diff_hor(0),
+                tmp_diff_maindig(0), tmp_diff_subdig(0);
+
+        for (int j = 2; j < w-2; ++j ){
+
+                tmp_diff_vert += abs(b.at<uchar>(i-1,j) - b.at<uchar>(i+1,j));
+
+                tmp_diff_hor += abs(b.at<uchar>(i,j-1) - b.at<uchar>(i,j+1));
+
+                tmp_diff_maindig += abs(b.at<uchar>(i-1,-1) - b.at<uchar>(i+1,j+1));
+
+                tmp_diff_subdig += abs(b.at<uchar>(i-1,j+1) - b.at<uchar>(i+1,j-1));
+
+        }
+
+        av_diff_vert    += (tmp_diff_vert / w);
+        av_diff_hor     += (tmp_diff_hor / w);
+        av_diff_maindig += (tmp_diff_maindig / w);
+        av_diff_subdig  += (tmp_diff_subdig / w);
+    }
+
+    av_diff_vert    /= h;
+    av_diff_hor     /= h;
+    av_diff_maindig /= h;
+    av_diff_subdig  /= h;
+
+
     for (int i = 4; i < h-4; ++i ){
         for (int j = 4; j < w-4; ++j ){
 
@@ -192,25 +247,24 @@ void localGradientMap(const cv::Mat &input_img, double* Map){
             }
 
 
-
             if ( M*s_vert > s_hor && M*GK*s_vert > s_maindig && M*GK*s_vert > s_subdig){
                 s_max = s_vert;
-                if (s_max > AV*s*3) {
+                if ((s_max > AV*s*3) && (s_max > G_AV * av_diff_vert)) {
                       if (GK*s_hor < s_maindig* M1 && GK*s_hor < s_subdig* M1) Gvert[i*w+j]+=1;
                 }
             } else if(M*s_hor > s_vert && M*GK*s_hor > s_maindig && M*GK*s_hor > s_subdig){
                        s_max = s_hor;
-                       if (s_max > AV*s*3) {
+                       if ((s_max > AV*s*3) && (s_max > G_AV * av_diff_hor)){
                             if (GK*s_vert < s_maindig* M1 && GK*s_vert < s_subdig* M1) Ghor[i*w+j]+=1;
                        }
             } else if( M*s_maindig > GK*s_hor && M*s_maindig > GK* s_vert && M*s_maindig > s_subdig){
                        s_max = s_maindig;
-                       if (s_max > AV*s*3) {
+                       if ((s_max > AV*s*3) && (s_max > G_AV * av_diff_maindig)) {
                                if(GK*s_vert* M1 > s_subdig && GK*s_hor* M1 > s_subdig) Gmain[i*w+j]+=1;
                            }
             } else if( M*s_subdig > GK*s_hor && M*s_subdig > GK* s_vert && M*s_subdig > s_maindig) {
                 s_max = s_subdig;
-                if (s_max > AV*s*3) {
+                if ((s_max > AV*s*3)  && (s_max > G_AV * av_diff_subdig) ) {
                         if(GK*s_vert* M1 > s_maindig && GK*s_hor* M1 > s_maindig) Gsub[i*w+j]+=1;
                 }
               }
@@ -219,6 +273,36 @@ void localGradientMap(const cv::Mat &input_img, double* Map){
 
 
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~BLUE~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+    for (int i = 2; i < h-2; ++i ){
+
+    long double tmp_diff_vert(0), tmp_diff_hor(0),
+                tmp_diff_maindig(0), tmp_diff_subdig(0);
+
+        for (int j = 2; j < w-2; ++j ){
+
+                tmp_diff_vert += abs(b.at<uchar>(i-1,j) - b.at<uchar>(i+1,j));
+
+                tmp_diff_hor += abs(b.at<uchar>(i,j-1) - b.at<uchar>(i,j+1));
+
+                tmp_diff_maindig += abs(b.at<uchar>(i-1,-1) - b.at<uchar>(i+1,j+1));
+
+                tmp_diff_subdig += abs(b.at<uchar>(i-1,j+1) - b.at<uchar>(i+1,j-1));
+
+        }
+
+        av_diff_vert    += (tmp_diff_vert / w);
+        av_diff_hor     += (tmp_diff_hor / w);
+        av_diff_maindig += (tmp_diff_maindig / w);
+        av_diff_subdig  += (tmp_diff_subdig / w);
+    }
+
+    av_diff_vert    /= h;
+    av_diff_hor     /= h;
+    av_diff_maindig /= h;
+    av_diff_subdig  /= h;
+
+
     for (int i = 4; i < h-4; ++i ){
         for (int j = 4; j < w-4; ++j ){
 
@@ -272,26 +356,25 @@ void localGradientMap(const cv::Mat &input_img, double* Map){
 
 
 
-
             if ( M*s_vert > s_hor && M*GK*s_vert > s_maindig && M*GK*s_vert > s_subdig){
                 s_max = s_vert;
-                if (s_max > AV*s*3) {
+                if ((s_max > AV*s*3) && (s_max > G_AV * av_diff_vert)) {
                       if (GK*s_hor < s_maindig* M1 && GK*s_hor < s_subdig* M1) Bvert[i*w+j]+=1;
                 }
             } else if(M*s_hor > s_vert && M*GK*s_hor > s_maindig && M*GK*s_hor > s_subdig){
                        s_max = s_hor;
-                       if (s_max > AV*s*3) {
+                       if ((s_max > AV*s*3) && (s_max > G_AV * av_diff_hor)){
                             if (GK*s_vert < s_maindig* M1 && GK*s_vert < s_subdig* M1) Bhor[i*w+j]+=1;
                        }
             } else if( M*s_maindig > GK*s_hor && M*s_maindig > GK* s_vert && M*s_maindig > s_subdig){
                        s_max = s_maindig;
-                       if (s_max > AV*s*3) {
+                       if ((s_max > AV*s*3) && (s_max > G_AV * av_diff_maindig)) {
                                if(GK*s_vert* M1 > s_subdig && GK*s_hor* M1 > s_subdig) Bmain[i*w+j]+=1;
                            }
             } else if( M*s_subdig > GK*s_hor && M*s_subdig > GK* s_vert && M*s_subdig > s_maindig) {
                 s_max = s_subdig;
-                if (s_max > AV*s*3) {
-                        if(GK*s_vert * M1> s_maindig && GK*s_hor * M1> s_maindig) Bsub[i*w+j]+=1;
+                if ((s_max > AV*s*3)  && (s_max > G_AV * av_diff_subdig) ) {
+                        if(GK*s_vert* M1 > s_maindig && GK*s_hor* M1 > s_maindig) Bsub[i*w+j]+=1;
                 }
               }
         }
@@ -323,4 +406,3 @@ void localGradientMap(const cv::Mat &input_img, double* Map){
 
 return;
 }
-
