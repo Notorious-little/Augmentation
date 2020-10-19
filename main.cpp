@@ -7,6 +7,9 @@
 #include <cstring>
 #include <cstdio>
 #include <cmath>
+#include <chrono>
+#include <ctime>
+#include <random>
 #include "methods.h"
 #include "OO_methods.h"
 #include "gradient_map.h"
@@ -27,11 +30,13 @@ void drawTarget(IplImage* img, int x, int y, int radius)
 
 void myMouseCallback( int event, int x, int y, int flags, void* param )
 {
-    IplImage* img = (IplImage*) param;
+
 
     switch( event ){
 
         case CV_EVENT_LBUTTONDOWN:
+
+            IplImage* img = (IplImage*) param;
 
             printf("%d , %d \n", x, y);
             drawTarget(img, x, y, 10);
@@ -40,17 +45,26 @@ void myMouseCallback( int event, int x, int y, int flags, void* param )
             int h = input_img.rows;
             int w = input_img.cols;
 
-            int Map_size = (h+1)*(w+1);
+            int Map_size = (h)*(w);
             double Map[Map_size];
 
-            cv::Mat AC_img = autoContrast(input_img, 1);
+            cv::Mat AC_img = autoContrast(input_img, 10);
+          //  cv::Mat blured = blurByGaussMatrix(AC_img, 2);
             localGradientMap(AC_img, Map);
             cv::Mat map_img = draw_GM_contoured_img(input_img, Map, Map_size);
             cv::Mat medianed = medianFilter_8UC1(map_img);
             cv::imshow("G", medianed);
-            for (int i = -5; i < 5; ++i){
-                for (int j = -5; j < 5; ++j){
-                    find_circle_around_point(x+i, y+j, 0, medianed);
+
+
+            for (int i = -2; i < 2; ++i){
+                for (int j = -2; j < 2; ++j){
+
+                    int Radius =
+                            find_circle_around_point(x+i, y+j, 0, medianed);
+
+                    if (Radius > 5){
+                        cvCircle( img, cvPoint(x+i, y+j), Radius , CV_RGB(250,0,0), 1, 8);
+                    }
                 }
             }
 
@@ -73,7 +87,8 @@ int main(int argc, char *argv[]){
     }
 
     Params p{5, 3, 10};                     // quantil = 5; blurpower = 3; noize_range = 10;
-    std::vector<Augmentation*> defect = {new Blur(), new GaussNoize(), new Autocontrast()};
+
+    std::vector<Augmentation*> defect = { new GaussNoize(), new Blur(), new Autocontrast()};
 
     int Num = 0;
     int n = std::atoi(argv[3]);
@@ -87,43 +102,46 @@ int main(int argc, char *argv[]){
         return 2;
     };
 
+    std::default_random_engine rand_gen;
+    unsigned seed = static_cast<unsigned>(std::chrono::system_clock::now().time_since_epoch().count());
+    rand_gen.seed(seed);
+    std::uniform_int_distribution<int> distribution(0, defect.size() );
 
     while (std::getline(file, im_path)){
-    std::cout<<im_path<<"     ";
+
+        std::cout<<im_path<<"     ";
         cv::Mat img = cv::imread ( im_path , cv::IMREAD_COLOR) ;
 
-        cv::Mat newImage = img.clone();
+        for(int m = 0; m < n; ++m){
 
-        std::srand( (int)time(NULL) );
-        int times = rand() % n;
+            std::shuffle(std::begin(defect), std::end(defect), rand_gen);
 
-        for(int k = 0; k < times; ++k){
+            int times = distribution(rand_gen);
 
-            std::srand( (int)time(NULL) );
-            p.quantil = ( 2*abs( (int) std::rand() ) ) %10;
-            p.blurpower = ( abs( (int) std::rand() ) ) % 5;
-            p.noize_range = ( abs( (int) std::rand() ) ) % 10;
+            cv::Mat newImage = img.clone();
 
-            std::srand( (int)time(NULL) );
-            int a = std::rand();
+            for(int k = 0; k < times; ++k){
+                assert (k < defect.size() );
+                newImage = defect[k]->makeImage(newImage, p);
+            }
 
-            newImage = defect[ (a % 3) ]->makeImage(newImage, p);
+            std::string im_name = "/Im_";
+            im_name += std::to_string(Num);
+            im_name += "_";
+            im_name += std::to_string(m);
+            im_name += ".bmp";
+
+            std::string im_out_path = argv[2] + im_name;
+            cv::imwrite(im_out_path, newImage);
+            std::cout<<im_out_path<<std::endl;
+
+            std::cout<<"MADE"<<std::endl;
         }
 
-        std::string im_name = "/Im_";
-        im_name += std::to_string(Num);
-        im_name += ".bmp";
-
-        std::string im_out_path = argv[2] + im_name;
         ++Num;
-        cv::imwrite(im_out_path, newImage);
-        std::cout<<im_out_path<<std::endl;
-
-        std::cout<<"MADE"<<std::endl;
-
     }
 
-    for(int i = 0; i < 3; ++i){
+    for(int i = 0; i < defect.size(); ++i){
         delete defect.at(i);
     }
 
@@ -210,6 +228,6 @@ int main() {
 
 
 return 0;
-}
+}  */
 
-*/
+
