@@ -116,19 +116,19 @@ return img_autocontr;
 }
 
 
-void Blur::slidingNormalMatrixCompute(Params p){
-    assert (p.blurpower >= 1);
+void Blur::slidingNormalMatrixCompute(const int blurpower, double* elements){
+    assert (blurpower >= 1);
 							 
-    int n = p.blurpower * 2 + 1;
-    double disp2 = (double)(p.blurpower) / 2;
+    int n = blurpower * 2 + 1;
+    double disp2 = (double)(blurpower) / 2;
     double div = 0;
 
     for(int i = 0; i < n; ++i){
         for(int j = 0; j < n; ++j){ 			
-            p.elements[i * n + j] = exp( -((p.blurpower-i)*(p.blurpower-i) +
-                                  (p.blurpower-j)*(p.blurpower-j))/(2*disp2))
+            elements[i * n + j] = exp( -((blurpower-i)*(blurpower-i) +
+                                  (blurpower-j)*(blurpower-j))/(2*disp2))
                                   / (2*M_PI*disp2);
-            div += p.elements[i * n + j];
+            div += elements[i * n + j];
         }
     }
     
@@ -136,7 +136,7 @@ void Blur::slidingNormalMatrixCompute(Params p){
 
     for(int i = 0; i < n; ++i){
         for(int j = 0; j < n; ++j){
-            p.elements[i * n + j] /= div;
+            elements[i * n + j] /= div;
         }
     } 
 return;
@@ -162,9 +162,12 @@ cv::Mat Blur::makeImage(const cv::Mat &input_img, Params &p){
         }
     }
 
-    double* elements = new double [(2*p.blurpower+1)*(2*p.blurpower+1)];
+  //  double* elements = new double [(2*p.blurpower+1)*(2*p.blurpower+1)];
 
-    slidingNormalMatrixCompute( p );
+    int blurpower = p.blurpower;
+    double elements[n*n];
+
+    slidingNormalMatrixCompute( blurpower, elements );
 
     for (int i = p.blurpower; i < h - p.blurpower; ++i){
         for (int j = p.blurpower; j < w - p.blurpower; ++j){
@@ -172,11 +175,11 @@ cv::Mat Blur::makeImage(const cv::Mat &input_img, Params &p){
             for (int k = i - p.blurpower; k < i + p.blurpower + 1; ++k){
                 for (int l = j - p.blurpower; l < j + p.blurpower +1; ++l){
                     R += ( input_img.at<cv::Vec3b>(k,l)[0] *
-                            p.elements[(k - i + p.blurpower) * n + (l - j + p.blurpower)]);
+                            elements[(k - i + p.blurpower) * n + (l - j + p.blurpower)]);
                     G += ( input_img.at<cv::Vec3b>(k,l)[1] *
-                            p.elements[(k - i + p.blurpower) * n + (l - j + p.blurpower)]);
+                            elements[(k - i + p.blurpower) * n + (l - j + p.blurpower)]);
                     B += ( input_img.at<cv::Vec3b>(k,l)[2] *
-                            p.elements[(k - i + p.blurpower) * n + (l - j + p.blurpower)]);
+                            elements[(k - i + p.blurpower) * n + (l - j + p.blurpower)]);
                 }
             }
         bluring_img.at<cv::Vec3b>(i,j)[0] = (int)R;
@@ -185,8 +188,8 @@ cv::Mat Blur::makeImage(const cv::Mat &input_img, Params &p){
         }
     }
 
-    delete elements;
-	
+  //  delete elements;
+
 return bluring_img;
 }
 
@@ -242,3 +245,4 @@ cv::Mat GaussNoize::makeImage(const cv::Mat &input_img, Params &p){
 
 return noizing_img;
 }
+
