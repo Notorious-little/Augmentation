@@ -18,7 +18,7 @@
 
 # define M_PI           3.14159265358979323846
 
-
+/*
 
 void drawTarget(IplImage* img, int x, int y, int radius)
 {
@@ -74,7 +74,7 @@ void myMouseCallback( int event, int x, int y, int flags, void* param )
 return;
 }
 
-
+*/
 
 
 int main(int argc, char *argv[]){
