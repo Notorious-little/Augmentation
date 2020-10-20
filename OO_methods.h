@@ -58,7 +58,7 @@ class Blur : public Augmentation{
 
     private:
 
-    void slidingNormalMatrixCompute(Params p);
+    void slidingNormalMatrixCompute(int blurpower, double *elements);
 
 };
 
