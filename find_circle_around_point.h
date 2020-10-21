@@ -9,4 +9,4 @@
 #include <cmath>
 #include "gradient_map.h"
 
-void find_circle_around_point(int x, int y, int R, cv::Mat &input_img);
+int find_circles(cv::Mat &input_img, int N);
