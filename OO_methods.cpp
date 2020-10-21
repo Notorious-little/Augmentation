@@ -165,7 +165,7 @@ cv::Mat Blur::makeImage(const cv::Mat &input_img, Params &p){
   //  double* elements = new double [(2*p.blurpower+1)*(2*p.blurpower+1)];
 
     int blurpower = p.blurpower;
-    double elements[n*n];
+    double* elements = new double[n*n];
 
     slidingNormalMatrixCompute( blurpower, elements );
 
@@ -188,7 +188,7 @@ cv::Mat Blur::makeImage(const cv::Mat &input_img, Params &p){
         }
     }
 
-  //  delete elements;
+    delete[] elements;
 
 return bluring_img;
 }
