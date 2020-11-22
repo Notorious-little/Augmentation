@@ -116,6 +116,8 @@ return img_autocontr;
 }
 
 
+
+
 void Blur::slidingNormalMatrixCompute(const int blurpower, double* elements){
     assert (blurpower >= 1);
 							 
@@ -145,7 +147,6 @@ return;
 
 
 
-
 cv::Mat Blur::makeImage(const cv::Mat &input_img, Params &p){
 
     cv::Mat bluring_img = input_img.clone();
@@ -162,10 +163,9 @@ cv::Mat Blur::makeImage(const cv::Mat &input_img, Params &p){
         }
     }
 
-  //  double* elements = new double [(2*p.blurpower+1)*(2*p.blurpower+1)];
+    double* elements = new double [(2*p.blurpower+1)*(2*p.blurpower+1)];
 
     int blurpower = p.blurpower;
-    double* elements = new double[n*n];
 
     slidingNormalMatrixCompute( blurpower, elements );
 
@@ -188,7 +188,7 @@ cv::Mat Blur::makeImage(const cv::Mat &input_img, Params &p){
         }
     }
 
-    delete[] elements;
+    delete elements;
 
 return bluring_img;
 }
@@ -215,6 +215,8 @@ double GaussNoize::exp_rand(void){
     }
 return 0;
 }
+
+
 
 
 cv::Mat GaussNoize::makeImage(const cv::Mat &input_img, Params &p){
@@ -245,4 +247,3 @@ cv::Mat GaussNoize::makeImage(const cv::Mat &input_img, Params &p){
 
 return noizing_img;
 }
-

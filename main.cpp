@@ -1,3 +1,5 @@
+# define M_PI           3.14159265358979323846
+
 #include <cassert>
 #include <fstream>
 #include <iostream>
@@ -10,73 +12,32 @@
 #include <chrono>
 #include <ctime>
 #include <random>
+#include <cv.h>
+#include <highgui.h>
+#include <stdlib.h>
+#include <stdio.h>
 #include "methods.h"
 #include "OO_methods.h"
 #include "gradient_map.h"
-#include "map_edje_filtration.h"
+#include "map_filtrations.h"
 #include "find_circle_around_point.h"
+#include "v2_gradient_map.h"
+#include "support.h"
+#include "barcode.h"
 
-# define M_PI           3.14159265358979323846
+
+
+int main(int argc, char* argv[])
+{
+   // cv::Mat img = cv::imread( "./coins3.bmp" , cv::IMREAD_COLOR) ;
+
+   // show_OriginalImage(img);
+    show_BarcodeDetector();
+
+}
+
 
 /*
-
-void drawTarget(IplImage* img, int x, int y, int radius)
-{
-    cvCircle(img,cvPoint(x, y),radius,CV_RGB(250,0,0),1,8);
-    cvLine(img, cvPoint(x-radius/2, y-radius/2), cvPoint(x+radius/2, y+radius/2),CV_RGB(250,0,0),1,8);
-    cvLine(img, cvPoint(x-radius/2, y+radius/2), cvPoint(x+radius/2, y-radius/2),CV_RGB(250,0,0),1,8);
-}
-
-
-void myMouseCallback( int event, int x, int y, int flags, void* param )
-{
-
-
-    switch( event ){
-
-        case CV_EVENT_LBUTTONDOWN:
-
-            IplImage* img = (IplImage*) param;
-
-            printf("%d , %d \n", x, y);
-            drawTarget(img, x, y, 10);
-            cv::Mat input_img = cv::cvarrToMat(img);
-
-            int h = input_img.rows;
-            int w = input_img.cols;
-
-            int Map_size = (h)*(w);
-            double Map[Map_size];
-
-            cv::Mat AC_img = autoContrast(input_img, 10);
-          //  cv::Mat blured = blurByGaussMatrix(AC_img, 2);
-            localGradientMap(AC_img, Map);
-            cv::Mat map_img = draw_GM_contoured_img(input_img, Map, Map_size);
-            cv::Mat medianed = medianFilter_8UC1(map_img);
-            cv::imshow("G", medianed);
-
-
-            for (int i = -2; i < 2; ++i){
-                for (int j = -2; j < 2; ++j){
-
-                    int Radius =
-                            find_circle_around_point(x+i, y+j, 0, medianed);
-
-                    if (Radius > 5){
-                        cvCircle( img, cvPoint(x+i, y+j), Radius , CV_RGB(250,0,0), 1, 8);
-                    }
-                }
-            }
-
-            break;
-
-    }
-return;
-}
-
-*/
-
-
 int main(int argc, char *argv[]){
 
     if(argc != 4){
@@ -125,7 +86,7 @@ int main(int argc, char *argv[]){
                 newImage = defect[k]->makeImage(newImage, p);
             }
 
-            std::string im_name = "/Im_";
+            std::string iимеющий данных и состоящий в основном из чисто виртуальных функций. Такое решение позволяеm_name = "/Im_";
             im_name += std::to_string(Num);
             im_name += "_";
             im_name += std::to_string(m);
@@ -150,84 +111,5 @@ int main(int argc, char *argv[]){
 return 0;
 }
 
-/*
-
-int main() {
-
-    IplImage* src = 0;
-
-    cv::Mat img = cv::imread ( "./coins.bmp" , cv::IMREAD_COLOR) ;
-
-    IplImage* image = cvCreateImage(cvSize(img.cols, img.rows), 8, 3);
-    IplImage ipltemp = img;
-    cvCopy(&ipltemp, image);
-
-    int h = img.rows;
-    int w = img.cols;
-
-    src = cvCloneImage(image);
-
-        assert( src != 0 );
-
-        cvNamedWindow("Original", CV_WINDOW_AUTOSIZE);
-
-        cvSetMouseCallback( "Original", myMouseCallback, (void*) image);
-
-        while(1){
-            src = cvCloneImage( image);
-            cvShowImage( "Original", src );
-
-            char c = cvWaitKey(33);
-            if (c == 27) {                 // c = 27 is Esc
-                break;
-            }
-        }
-
-        cvReleaseImage(&image);
-        cvReleaseImage(&src);
-
-        cvDestroyWindow("Original");
-
-
-
-    cv::Mat autoc = autoContrast(img, 5);
-    cv::imshow( "Contrasted", autoc);                 
-
-    cv::Mat blured_img = blurByGaussMatrix(img, 5);
-    cv::imshow( "Blured", blured_img);
-
-    cv::Mat contoured = localContours(img);
-    cv::imshow( "Contoured", contoured);
-
-    cv::Mat noized_image = gaussNoize( img, 15);
-    cv::imshow( "Noized", noized_image);
-
-    cv::Mat SaltPaperNoized_image = salt_paperNoize( img, 8083647);
-    cv::imshow( "SL-Noized", SaltPaperNoized_image);
-
-    cv::waitKey(0);    
-    cv::imwrite("./mrbinout.bmp", autoc);  
-
-
-
-    int Map_size = (h+1)*(w+1);
-    double Map[Map_size];
-    cv::Mat blured_img = blurByGaussMatrix(img, 2);
-    cv::Mat AC_img = autoContrast(img, 1);
-
-    localGradientMap(AC_img, Map);
-    cv::Mat map_img = draw_GM_contoured_img(img, Map, Map_size);
-    cv::Mat medianed = medianFilter_8UC1(map_img);
-    cv::imshow("GMC", medianed);
-
-    cv::Mat dst = img.clone();
-    cvtColor( img , dst , cv::COLOR_BGR2GRAY );
-    cv::Canny(img, dst, 10, 200, 3);
-    cv::imshow( "Canny Contoured", dst);
-
-
-
-return 0;
-}  */
-
+*/
 
