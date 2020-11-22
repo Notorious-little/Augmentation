@@ -86,7 +86,7 @@ int main(int argc, char *argv[]){
                 newImage = defect[k]->makeImage(newImage, p);
             }
 
-            std::string iимеющий данных и состоящий в основном из чисто виртуальных функций. Такое решение позволяеm_name = "/Im_";
+            std::string im_name = "/Im_";
             im_name += std::to_string(Num);
             im_name += "_";
             im_name += std::to_string(m);
